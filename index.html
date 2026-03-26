@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여행 회화 도우미</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --card: #FFFFFF;
+    --border: #E8E4DC;
+    --text: #1A1816;
+    --muted: #7A7570;
+    --accent-cn: #D4332A;
+    --accent-jp: #D0284A;
+    --accent-us: #1A4FA0;
+    --chip-hover: #EDEAE3;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --shadow-hover: 0 6px 24px rgba(0,0,0,0.11);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 48px;
+  }
+
+  .app-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .app-logo-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, #1A4FA0, #D4332A);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .app-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .app-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .country-tabs {
+    display: flex; gap: 8px; padding: 16px 20px 0;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .country-tabs::-webkit-scrollbar { display: none; }
+
+  .country-tab {
+    flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 50px;
+    border: 1.5px solid var(--border); background: var(--card);
+    cursor: pointer; font-size: 14px; font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.18s; white-space: nowrap;
+  }
+  .country-tab .flag { font-size: 19px; }
+  .country-tab:hover { background: var(--chip-hover); }
+  .country-tab.active-cn { border-color: var(--accent-cn); background: #FFF0EF; color: var(--accent-cn); }
+  .country-tab.active-jp { border-color: var(--accent-jp); background: #FFF0F2; color: var(--accent-jp); }
+  .country-tab.active-us { border-color: var(--accent-us); background: #EEF3FF; color: var(--accent-us); }
+
+  .main { padding: 16px 20px; max-width: 780px; margin: 0 auto; }
+
+  .hero-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px 22px; margin-bottom: 16px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .hero-flag { font-size: 36px; flex-shrink: 0; }
+  .hero-country-name { font-size: 20px; font-weight: 700; margin-bottom: 3px; }
+  .hero-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.7px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+
+  .situation-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 20px;
+  }
+  @media (min-width: 480px) { .situation-grid { grid-template-columns: repeat(6, 1fr); } }
+
+  .situation-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 11px 8px; border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border); background: var(--card);
+    cursor: pointer; font-size: 12px; font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.18s; text-align: center; line-height: 1.3;
+  }
+  .situation-chip .icon { font-size: 20px; }
+  .situation-chip:hover { background: var(--chip-hover); transform: translateY(-1px); }
+  .situation-chip.active { border-width: 2px; font-weight: 600; }
+  .cn .situation-chip.active { border-color: var(--accent-cn); color: var(--accent-cn); background: #FFF5F5; }
+  .jp .situation-chip.active { border-color: var(--accent-jp); color: var(--accent-jp); background: #FFF3F5; }
+  .us .situation-chip.active { border-color: var(--accent-us); color: var(--accent-us); background: #F0F4FF; }
+
+  .phrase-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .phrase-count { font-size: 12px; color: var(--muted); }
+
+  .phrase-container {
+    display: grid; grid-template-columns: 1fr; gap: 10px;
+  }
+  @media (min-width: 560px) { .phrase-container { grid-template-columns: 1fr 1fr; } }
+
+  .phrase-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 15px 17px;
+    padding-right: 78px; position: relative; overflow: hidden;
+    transition: all 0.18s; cursor: default;
+  }
+  .phrase-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  }
+  .cn .phrase-card::before { background: var(--accent-cn); }
+  .jp .phrase-card::before { background: var(--accent-jp); }
+  .us .phrase-card::before { background: var(--accent-us); }
+  .phrase-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+
+  .phrase-ko { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .phrase-foreign { font-size: 18px; font-weight: 500; line-height: 1.4; margin-bottom: 4px; }
+  .phrase-foreign.cn-text { font-family: 'Noto Sans SC', sans-serif; }
+  .phrase-foreign.jp-text { font-family: 'Noto Sans JP', sans-serif; }
+  .phrase-pronun { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  .card-actions {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 5px; align-items: center;
+    opacity: 0; transition: opacity 0.18s;
+  }
+  .phrase-card:hover .card-actions { opacity: 1; }
+
+  .action-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; transition: all 0.15s; flex-shrink: 0;
+  }
+  .action-btn:hover { background: var(--card); box-shadow: var(--shadow); transform: scale(1.12); }
+  .action-btn.speaking { animation: pulse-ring 1s infinite; }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(0,0,0,0.15); }
+    70%  { box-shadow: 0 0 0 5px rgba(0,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #1A1816; color: white;
+    padding: 10px 20px; border-radius: 50px;
+    font-size: 13px; font-weight: 500;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999; pointer-events: none; font-family: 'Noto Sans KR', sans-serif;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo-icon">✈️</div>
+  <div>
+    <div class="app-title">여행 회화 도우미</div>
+    <div class="app-subtitle">중국 · 일본 · 미국</div>
+  </div>
+</header>
+
+<nav class="country-tabs" id="countryTabs">
+  <button class="country-tab" data-country="cn" onclick="switchCountry('cn')">
+    <span class="flag">🇨🇳</span> 중국어
+  </button>
+  <button class="country-tab" data-country="jp" onclick="switchCountry('jp')">
+    <span class="flag">🇯🇵</span> 일본어
+  </button>
+  <button class="country-tab" data-country="us" onclick="switchCountry('us')">
+    <span class="flag">🇺🇸</span> 영어
+  </button>
+</nav>
+
+<main class="main" id="mainContent"></main>
+<div class="toast" id="toast">📋 복사됨</div>
+
+<script>
+const DATA = {
+  cn: {
+    name: '중국', flag: '🇨🇳', script: 'cn-text', cls: 'cn',
+    desc: '발음은 한국어로 표기되어 있습니다.',
+    situations: [
+      { id: 'airport',     icon: '✈️',  label: '공항/교통' },
+      { id: 'hotel',       icon: '🏨',  label: '호텔' },
+      { id: 'restaurant',  icon: '🍜',  label: '음식점' },
+      { id: 'shopping',    icon: '🛍️',  label: '쇼핑' },
+      { id: 'sightseeing', icon: '📸',  label: '관광/길찾기' },
+      { id: 'emergency',   icon: '🏥',  label: '긴급/병원' },
+    ],
+    phrases: {
+      airport: [
+        { ko: '어디로 가나요?',              foreign: '去哪里？',             pronun: '취 나리?' },
+        { ko: '지하철역이 어디예요?',         foreign: '地铁站在哪里？',        pronun: '띠티에 잔 짜이 나리?' },
+        { ko: '얼마예요?',                   foreign: '多少钱？',              pronun: '뚜어샤오 치엔?' },
+        { ko: '공항까지 태워주세요.',         foreign: '请送我去机场。',         pronun: '칭 쏭 워 취 지창.' },
+        { ko: '택시 불러주세요.',             foreign: '请帮我叫出租车。',       pronun: '칭 방 워 지아오 추주처.' },
+        { ko: '이 주소로 가주세요.',           foreign: '请去这个地址。',         pronun: '칭 취 쩌거 띠즈.' },
+        { ko: '짐칸 좀 열어주세요.',           foreign: '请打开后备箱。',         pronun: '칭 다카이 호우베이샹.' },
+        { ko: '버스 정류장이 어디예요?',       foreign: '公共汽车站在哪里？',     pronun: '꽁꽁 치처 잔 짜이 나리?' },
+      ],
+      hotel: [
+        { ko: '체크인하고 싶어요.',            foreign: '我想办理入住。',         pronun: '워 시앙 반리 루주.' },
+        { ko: '방에 문제가 있어요.',           foreign: '房间有问题。',           pronun: '팡지엔 요우 원티.' },
+        { ko: '모닝콜 부탁드려요.',            foreign: '请帮我叫早。',           pronun: '칭 방 워 지아오 짜오.' },
+        { ko: '짐 맡아주실 수 있나요?',        foreign: '可以帮我保管行李吗？',   pronun: '커이 방 워 바오관 싱리 마?' },
+        { ko: '체크아웃은 몇 시예요?',         foreign: '退房时间是几点？',       pronun: '투이팡 스지엔 스 지디엔?' },
+        { ko: '와이파이 비밀번호가 뭐예요?',   foreign: '无线网密码是什么？',     pronun: '우시엔왕 미마 스 션머?' },
+        { ko: '수건을 더 주세요.',             foreign: '请再给我毛巾。',         pronun: '칭 짜이 게이 워 마오진.' },
+        { ko: '방을 바꾸고 싶어요.',           foreign: '我想换房间。',           pronun: '워 시앙 환 팡지엔.' },
+      ],
+      restaurant: [
+        { ko: '메뉴 보여주세요.',              foreign: '请给我看菜单。',         pronun: '칭 게이 워 칸 차이단.' },
+        { ko: '이거 주세요.',                  foreign: '我要这个。',             pronun: '워 야오 쩌거.' },
+        { ko: '맵지 않게 해주세요.',           foreign: '请不要太辣。',           pronun: '칭 부야오 타이 라.' },
+        { ko: '계산서 주세요.',                foreign: '买单！',                pronun: '마이단!' },
+        { ko: '2인 자리 있나요?',              foreign: '有两个人的位子吗？',     pronun: '요우 량거 런더 웨이즈 마?' },
+        { ko: '이건 주문 안 했어요.',          foreign: '这个我没有点。',         pronun: '쩌거 워 메이요우 디엔.' },
+        { ko: '물 한 잔 주세요.',               foreign: '请给我一杯水。',         pronun: '칭 게이 워 이베이 쉐이.' },
+        { ko: '포장해 주세요.',                foreign: '请打包。',               pronun: '칭 다바오.' },
+      ],
+      shopping: [
+        { ko: '이거 얼마예요?',                foreign: '这个多少钱？',           pronun: '쩌거 뚜어샤오 치엔?' },
+        { ko: '깎아주실 수 있나요?',           foreign: '可以便宜一点吗？',       pronun: '커이 피엔이 이디엔 마?' },
+        { ko: '다른 색 있나요?',               foreign: '有其他颜色吗？',         pronun: '요우 치타 옌써 마?' },
+        { ko: '영수증 주세요.',                foreign: '请给我收据。',           pronun: '칭 게이 워 쇼우쥐.' },
+        { ko: '입어봐도 될까요?',              foreign: '可以试穿吗？',           pronun: '커이 스촨 마?' },
+        { ko: '다른 사이즈 있나요?',           foreign: '有其他尺码吗？',         pronun: '요우 치타 츠마 마?' },
+        { ko: '카드 결제 되나요?',             foreign: '可以刷卡吗？',           pronun: '커이 솨카 마?' },
+        { ko: '환불할 수 있나요?',             foreign: '可以退款吗？',           pronun: '커이 투이쿠안 마?' },
+      ],
+      sightseeing: [
+        { ko: '사진 찍어주실 수 있나요?',      foreign: '可以帮我拍照吗？',       pronun: '커이 방 워 파이짜오 마?' },
+        { ko: '입장료가 얼마예요?',            foreign: '门票多少钱？',           pronun: '먼피아오 뚜어샤오 치엔?' },
+        { ko: '화장실이 어디예요?',            foreign: '厕所在哪里？',           pronun: '처수오 짜이 나리?' },
+        { ko: '가이드 투어 있나요?',           foreign: '有导游服务吗？',         pronun: '요우 다오요우 푸우 마?' },
+        { ko: '여기가 어디예요?',              foreign: '这里是哪里？',           pronun: '쩌리 스 나리?' },
+        { ko: '지도 주실 수 있나요?',          foreign: '可以给我地图吗？',       pronun: '커이 게이 워 띠투 마?' },
+        { ko: '걸어서 얼마나 걸려요?',         foreign: '走路要多长时间？',       pronun: '조우루 야오 뚜어창 스지엔?' },
+        { ko: '가장 가까운 역이 어디예요?',    foreign: '最近的地铁站在哪里？',   pronun: '쭈이진 더 띠티에잔 짜이 나리?' },
+      ],
+      emergency: [
+        { ko: '도와주세요!',                   foreign: '帮帮我！',              pronun: '방방 워!' },
+        { ko: '경찰을 불러주세요.',            foreign: '请叫警察。',             pronun: '칭 지아오 징차.' },
+        { ko: '병원이 어디예요?',              foreign: '医院在哪里？',           pronun: '이위엔 짜이 나리?' },
+        { ko: '저는 한국 사람이에요.',         foreign: '我是韩国人。',           pronun: '워 스 한궈 런.' },
+        { ko: '구급차 불러주세요.',            foreign: '请叫救护车。',           pronun: '칭 지아오 지우후처.' },
+        { ko: '여기가 아파요.',                foreign: '这里很痛。',             pronun: '쩌리 헌 통.' },
+        { ko: '약국이 어디예요?',              foreign: '药店在哪里？',           pronun: '야오디엔 짜이 나리?' },
+        { ko: '알레르기가 있어요.',            foreign: '我有过敏。',             pronun: '워 요우 꾸어민.' },
+      ],
+    },
+  },
+
+  jp: {
+    name: '일본', flag: '🇯🇵', script: 'jp-text', cls: 'jp',
+    desc: '발음은 한국어로 표기되어 있습니다.',
+    situations: [
+      { id: 'airport',     icon: '✈️',  label: '공항/교통' },
+      { id: 'hotel',       icon: '🏨',  label: '호텔' },
+      { id: 'restaurant',  icon: '🍱',  label: '음식점' },
+      { id: 'shopping',    icon: '🛍️',  label: '쇼핑' },
+      { id: 'sightseeing', icon: '📸',  label: '관광/길찾기' },
+      { id: 'emergency',   icon: '🏥',  label: '긴급/병원' },
+    ],
+    phrases: {
+      airport: [
+        { ko: '신주쿠까지 얼마예요?',          foreign: '新宿までいくらですか？',               pronun: '신주쿠 마데 이쿠라 데스 카?' },
+        { ko: '지하철을 타고 싶어요.',          foreign: '地下鉄に乗りたいです。',               pronun: '치카테츠 니 노리타이 데스.' },
+        { ko: '이 버스는 어디로 가나요?',       foreign: 'このバスはどこに行きますか？',         pronun: '코노 바스와 도코니 이키마스 카?' },
+        { ko: 'JR패스 사용할 수 있나요?',       foreign: 'JRパスは使えますか？',                pronun: 'JR 파스와 츠카에마스 카?' },
+        { ko: '이 주소로 가주세요.',             foreign: 'この住所に行ってください。',           pronun: '코노 쥬쇼니 잇테 쿠다사이.' },
+        { ko: '짐이 나오지 않아요.',             foreign: '荷物が出てきません。',                pronun: '니모츠가 데테키마셍.' },
+        { ko: '환전소가 어디예요?',              foreign: '両替所はどこですか？',                pronun: '료-가에쇼와 도코 데스 카?' },
+        { ko: '이 열차가 맞나요?',               foreign: 'この電車で合っていますか？',           pronun: '코노 덴샤데 앗테이마스 카?' },
+      ],
+      hotel: [
+        { ko: '체크인 부탁드려요.',              foreign: 'チェックインをお願いします。',         pronun: '체쿠인오 오네가이시마스.' },
+        { ko: '수건 더 주세요.',                 foreign: 'タオルをもう一枚ください。',           pronun: '타오루오 모- 이치마이 쿠다사이.' },
+        { ko: '조식은 몇 시예요?',               foreign: '朝食は何時ですか？',                  pronun: '쵸-쇼쿠와 난지 데스 카?' },
+        { ko: '내일 아침 택시 불러주세요.',      foreign: '明日の朝、タクシーを呼んでください。', pronun: '아시타노 아사, 타쿠시-오 욘데 쿠다사이.' },
+        { ko: '체크아웃은 몇 시예요?',           foreign: 'チェックアウトは何時ですか？',         pronun: '체쿠아우토와 난지 데스 카?' },
+        { ko: '와이파이 비밀번호가 뭐예요?',     foreign: 'Wi-Fiのパスワードは何ですか？',       pronun: '와이파이노 파스와-도와 난 데스 카?' },
+        { ko: '방 청소 부탁드려요.',             foreign: '部屋の掃除をお願いします。',           pronun: '헤야노 소-지오 오네가이시마스.' },
+        { ko: '귀중품 보관 되나요?',             foreign: '貴重品を預かってもらえますか？',       pronun: '키쵸-힌오 아즈캇테 모라에마스 카?' },
+      ],
+      restaurant: [
+        { ko: '이거 하나 주세요.',               foreign: 'これを一つください。',                pronun: '코레오 히토츠 쿠다사이.' },
+        { ko: '알레르기가 있어요.',              foreign: 'アレルギーがあります。',              pronun: '아레루기-가 아리마스.' },
+        { ko: '맛있어요!',                       foreign: 'おいしいです！',                      pronun: '오이시이 데스!' },
+        { ko: '계산서 주세요.',                  foreign: 'お会計をお願いします。',              pronun: '오카이케이오 오네가이시마스.' },
+        { ko: '2명인데 자리 있나요?',            foreign: '二人ですが、席はありますか？',         pronun: '후타리 데스가, 세키와 아리마스 카?' },
+        { ko: '추천 메뉴가 뭐예요?',             foreign: 'おすすめは何ですか？',                pronun: '오스스메와 난 데스 카?' },
+        { ko: '포장해 주세요.',                  foreign: '持ち帰りにしてください。',             pronun: '모치카에리니 시테 쿠다사이.' },
+        { ko: '물 한 잔 주세요.',                 foreign: 'お水を一杯ください。',                pronun: '오미즈오 잇파이 쿠다사이.' },
+      ],
+      shopping: [
+        { ko: '얼마예요?',                       foreign: 'いくらですか？',                      pronun: '이쿠라 데스 카?' },
+        { ko: '다른 사이즈 있나요?',             foreign: '違うサイズはありますか？',             pronun: '치가우 사이즈와 아리마스 카?' },
+        { ko: '세금 환급 받을 수 있나요?',       foreign: '免税になりますか？',                  pronun: '멘제이니 나리마스 카?' },
+        { ko: '선물 포장 해주세요.',             foreign: 'プレゼント用に包んでください。',       pronun: '푸레젠토요-니 츠츤데 쿠다사이.' },
+        { ko: '입어봐도 될까요?',                foreign: '試着してもいいですか？',              pronun: '시챠쿠 시테모 이이 데스 카?' },
+        { ko: '카드 결제 되나요?',               foreign: 'カードは使えますか？',                pronun: '카-도와 츠카에마스 카?' },
+        { ko: '영수증 주세요.',                  foreign: 'レシートをください。',                pronun: '레시-토오 쿠다사이.' },
+        { ko: '교환할 수 있나요?',               foreign: '交換できますか？',                    pronun: '코-칸 데키마스 카?' },
+      ],
+      sightseeing: [
+        { ko: '사진 찍어도 되나요?',             foreign: '写真を撮ってもいいですか？',           pronun: '샤신오 톳테모 이이 데스 카?' },
+        { ko: '여기가 어디예요?',                foreign: 'ここはどこですか？',                  pronun: '코코와 도코 데스 카?' },
+        { ko: '한국어 안내 있나요?',             foreign: '韓国語のパンフレットはありますか？',   pronun: '칸코쿠고노 팜푸렛토와 아리마스 카?' },
+        { ko: '마지막 입장은 몇 시예요?',        foreign: '最終入場は何時ですか？',              pronun: '사이슈- 뉴-죠-와 난지 데스 카?' },
+        { ko: '화장실이 어디예요?',              foreign: 'トイレはどこですか？',                pronun: '토이레와 도코 데스 카?' },
+        { ko: '지도 주실 수 있나요?',            foreign: '地図をもらえますか？',                pronun: '치즈오 모라에마스 카?' },
+        { ko: '가장 가까운 역이 어디예요?',      foreign: '一番近い駅はどこですか？',            pronun: '이치방 치카이 에키와 도코 데스 카?' },
+        { ko: '걸어서 얼마나 걸려요?',           foreign: '歩いてどのくらいかかりますか？',      pronun: '아루이테 도노쿠라이 카카리마스 카?' },
+      ],
+      emergency: [
+        { ko: '도와주세요!',                     foreign: '助けてください！',                    pronun: '타스케테 쿠다사이!' },
+        { ko: '경찰서가 어디예요?',              foreign: '警察署はどこですか？',                pronun: '케-사츠쇼와 도코 데스 카?' },
+        { ko: '저는 한국인입니다.',              foreign: '私は韓国人です。',                    pronun: '와타시와 칸코쿠진 데스.' },
+        { ko: '구급차 불러주세요.',              foreign: '救急車を呼んでください。',             pronun: '큐-큐-샤오 욘데 쿠다사이.' },
+        { ko: '여기가 아파요.',                  foreign: 'ここが痛いです。',                    pronun: '코코가 이타이 데스.' },
+        { ko: '약국이 어디예요?',                foreign: '薬局はどこですか？',                  pronun: '야쿄쿠와 도코 데스 카?' },
+        { ko: '알레르기가 있어요.',              foreign: 'アレルギーがあります。',              pronun: '아레루기-가 아리마스.' },
+        { ko: '가장 가까운 병원이 어디예요?',    foreign: '一番近い病院はどこですか？',          pronun: '이치방 치카이 뵤-인와 도코 데스 카?' },
+      ],
+    },
+  },
+
+  us: {
+    name: '미국', flag: '🇺🇸', script: '', cls: 'us',
+    desc: '발음은 한국어로 표기되어 있습니다.',
+    situations: [
+      { id: 'airport',     icon: '✈️',  label: '공항/교통' },
+      { id: 'hotel',       icon: '🏨',  label: '호텔' },
+      { id: 'restaurant',  icon: '🍔',  label: '음식점' },
+      { id: 'shopping',    icon: '🛍️',  label: '쇼핑' },
+      { id: 'sightseeing', icon: '📸',  label: '관광/길찾기' },
+      { id: 'emergency',   icon: '🏥',  label: '긴급/병원' },
+    ],
+    phrases: {
+      airport: [
+        { ko: '입국 목적은 관광이에요.',         foreign: "I'm here for tourism.",                pronun: '아임 히어 포 투어리즘.' },
+        { ko: '환승 게이트가 어디예요?',         foreign: "Where is the connecting gate?",         pronun: '웨어 이즈 더 커넥팅 게이트?' },
+        { ko: '짐을 잃어버렸어요.',              foreign: "I lost my luggage.",                    pronun: '아이 로스트 마이 러기지.' },
+        { ko: '다운타운까지 얼마예요?',          foreign: "How much to downtown?",                pronun: '하우 머치 투 다운타운?' },
+        { ko: '이 주소로 가주세요.',              foreign: "Please take me to this address.",       pronun: '플리즈 테이크 미 투 디스 어드레스.' },
+        { ko: '세관 신고서 주세요.',             foreign: "Can I have a customs form?",            pronun: '캔 아이 해브 어 커스텀즈 폼?' },
+        { ko: '환전소가 어디예요?',              foreign: "Where's the currency exchange?",        pronun: '웨어즈 더 커런시 익스체인지?' },
+        { ko: '지하철역이 어디예요?',            foreign: "Where's the subway station?",           pronun: '웨어즈 더 서브웨이 스테이션?' },
+      ],
+      hotel: [
+        { ko: '예약했어요.',                     foreign: "I have a reservation.",                pronun: '아이 해브 어 레저베이션.' },
+        { ko: '늦게 체크아웃 할 수 있나요?',     foreign: "Is late checkout available?",           pronun: '이즈 레이트 체크아웃 어베일러블?' },
+        { ko: '방 청소 부탁드려요.',             foreign: "Can I get housekeeping, please?",       pronun: '캔 아이 겟 하우스키핑 플리즈?' },
+        { ko: '와이파이 비밀번호가 뭐예요?',     foreign: "What's the Wi-Fi password?",            pronun: '왓츠 더 와이파이 패스워드?' },
+        { ko: '수건 더 주세요.',                 foreign: "Can I have more towels?",               pronun: '캔 아이 해브 모어 타월즈?' },
+        { ko: '방이 너무 시끄러워요.',           foreign: "My room is too noisy.",                pronun: '마이 룸 이즈 투 노이지.' },
+        { ko: '조식은 몇 시부터예요?',           foreign: "What time does breakfast start?",       pronun: '왓 타임 더즈 브렉퍼스트 스타트?' },
+        { ko: '짐 맡아주실 수 있나요?',          foreign: "Can you hold my luggage?",              pronun: '캔 유 홀드 마이 러기지?' },
+      ],
+      restaurant: [
+        { ko: '2명인데 자리 있나요?',            foreign: "Table for two, please.",                pronun: '테이블 포 투 플리즈.' },
+        { ko: '추천 메뉴가 뭐예요?',             foreign: "What do you recommend?",               pronun: '왓 두 유 레커멘드?' },
+        { ko: '포장해 주세요.',                  foreign: "Can I get this to go?",                pronun: '캔 아이 겟 디스 투 고?' },
+        { ko: '계산 부탁드려요.',                foreign: "Check, please!",                       pronun: '첵 플리즈!' },
+        { ko: '알레르기가 있어요.',              foreign: "I have a food allergy.",                pronun: '아이 해브 어 푸드 앨러지.' },
+        { ko: '이거 빼주세요.',                  foreign: "Can you leave that out?",               pronun: '캔 유 리브 댓 아웃?' },
+        { ko: '물 한 잔 주세요.',                 foreign: "Can I get a glass of water?",           pronun: '캔 아이 겟 어 글래스 오브 워터?' },
+        { ko: '영수증 주세요.',                  foreign: "Can I get a receipt?",                 pronun: '캔 아이 겟 어 리싯?' },
+      ],
+      shopping: [
+        { ko: '입어봐도 되나요?',                foreign: "Can I try this on?",                   pronun: '캔 아이 트라이 디스 온?' },
+        { ko: '환불 할 수 있나요?',              foreign: "Can I get a refund?",                  pronun: '캔 아이 겟 어 리펀드?' },
+        { ko: '다른 색상 있나요?',               foreign: "Do you have this in another color?",    pronun: '두 유 해브 디스 인 어나더 컬러?' },
+        { ko: '신용카드 되나요?',                foreign: "Do you accept credit cards?",           pronun: '두 유 억셉트 크레딧 카즈?' },
+        { ko: '이거 얼마예요?',                  foreign: "How much is this?",                    pronun: '하우 머치 이즈 디스?' },
+        { ko: '다른 사이즈 있나요?',             foreign: "Do you have a different size?",         pronun: '두 유 해브 어 디퍼런트 사이즈?' },
+        { ko: '세일 중인 거 있나요?',            foreign: "Do you have anything on sale?",         pronun: '두 유 해브 애니띵 온 세일?' },
+        { ko: '영수증 주세요.',                  foreign: "Can I have a receipt?",                pronun: '캔 아이 해브 어 리싯?' },
+      ],
+      sightseeing: [
+        { ko: '여기서 사진 찍어도 되나요?',      foreign: "Is it okay to take photos here?",       pronun: '이즈 잇 오케이 투 테이크 포우토즈 히어?' },
+        { ko: '걸어서 얼마나 걸려요?',           foreign: "How long does it take to walk there?",  pronun: '하우 롱 더즈 잇 테이크 투 워크 데어?' },
+        { ko: '투어 버스 어디서 타요?',          foreign: "Where do I catch the tour bus?",        pronun: '웨어 두 아이 캐치 더 투어 버스?' },
+        { ko: '화장실이 어디예요?',              foreign: "Where's the restroom?",                pronun: '웨어즈 더 레스트룸?' },
+        { ko: '지도 주실 수 있나요?',            foreign: "Can I get a map?",                     pronun: '캔 아이 겟 어 맵?' },
+        { ko: '입장료가 얼마예요?',              foreign: "How much is the admission?",            pronun: '하우 머치 이즈 디 어드미션?' },
+        { ko: '가장 가까운 지하철역이 어디예요?', foreign: "Where's the nearest subway station?",  pronun: '웨어즈 더 니어리스트 서브웨이 스테이션?' },
+        { ko: '몇 시에 문 닫아요?',              foreign: "What time do you close?",               pronun: '왓 타임 두 유 클로즈?' },
+      ],
+      emergency: [
+        { ko: '도움이 필요해요!',                foreign: "Help! I need assistance!",              pronun: '헬프! 아이 니드 어시스턴스!' },
+        { ko: '경찰에 신고해주세요.',            foreign: "Please call the police.",               pronun: '플리즈 콜 더 폴리스.' },
+        { ko: '저는 한국 시민이에요.',           foreign: "I'm a Korean citizen.",                 pronun: '아임 어 코리안 시티즌.' },
+        { ko: '911 불러주세요.',                 foreign: "Call 911, please!",                     pronun: '콜 나인원원 플리즈!' },
+        { ko: '가장 가까운 병원이 어디예요?',    foreign: "Where's the nearest hospital?",         pronun: '웨어즈 더 니어리스트 하스피털?' },
+        { ko: '여기가 아파요.',                  foreign: "It hurts here.",                        pronun: '잇 허츠 히어.' },
+        { ko: '약국이 어디예요?',                foreign: "Where's the pharmacy?",                pronun: '웨어즈 더 파머시?' },
+        { ko: '알레르기가 있어요.',              foreign: "I have an allergy.",                    pronun: '아이 해브 언 앨러지.' },
+      ],
+    },
+  },
+};
+
+let currentCountry = 'cn';
+let currentSituation = 'airport';
+let currentUtterance = null;
+const LANG_CODES = { cn: 'zh-CN', jp: 'ja-JP', us: 'en-US' };
+
+function switchCountry(country) {
+  currentCountry = country;
+  currentSituation = 'airport';
+  document.querySelectorAll('.country-tab').forEach(t => {
+    t.className = 'country-tab';
+    if (t.dataset.country === country) t.classList.add('active-' + country);
+  });
+  renderMain();
+}
+
+function switchSituation(sit) {
+  currentSituation = sit;
+  document.querySelectorAll('.situation-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.sit === sit)
+  );
+  renderPhrases();
+}
+
+function renderMain() {
+  const d = DATA[currentCountry];
+  const chipsHtml = d.situations.map(s =>
+    `<button class="situation-chip ${s.id === currentSituation ? 'active' : ''}"
+      data-sit="${s.id}" onclick="switchSituation('${s.id}')">
+      <span class="icon">${s.icon}</span>${s.label}
+    </button>`
+  ).join('');
+
+  document.getElementById('mainContent').className = `main ${d.cls}`;
+  document.getElementById('mainContent').innerHTML = `
+    <div class="hero-card">
+      <div class="hero-flag">${d.flag}</div>
+      <div>
+        <div class="hero-country-name">${d.name} 여행 회화</div>
+        <div class="hero-desc">${d.desc}</div>
+      </div>
+    </div>
+    <div class="section-label">상황 선택</div>
+    <div class="situation-grid">${chipsHtml}</div>
+    <div class="phrase-header">
+      <div class="section-label" style="margin-bottom:0;">자주 쓰는 표현</div>
+      <span id="phraseCount" class="phrase-count"></span>
+    </div>
+    <div class="phrase-container" id="phraseContainer"></div>
+  `;
+  renderPhrases();
+}
+
+function renderPhrases() {
+  const d = DATA[currentCountry];
+  const phrases = d.phrases[currentSituation] || [];
+  const container = document.getElementById('phraseContainer');
+  const countEl = document.getElementById('phraseCount');
+  if (!container) return;
+  if (countEl) countEl.textContent = `${phrases.length}개`;
+
+  container.innerHTML = phrases.map(p => {
+    const safe = p.foreign.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `
+    <div class="phrase-card">
+      <div class="phrase-ko">${p.ko}</div>
+      <div class="phrase-foreign ${d.script}">${p.foreign}</div>
+      <div class="phrase-pronun">${p.pronun}</div>
+      <div class="card-actions">
+        <button class="action-btn" title="발음 듣기"
+          onclick="speakPhrase('${safe}', this)">🔊</button>
+        <button class="action-btn" title="복사"
+          onclick="copyPhrase('${safe}')">📋</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copyPhrase(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function speakPhrase(text, btn) {
+  if (!('speechSynthesis' in window)) { alert('이 브라우저는 음성 재생을 지원하지 않습니다.'); return; }
+  if (currentUtterance) {
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('.action-btn.speaking')
+      .forEach(b => { b.classList.remove('speaking'); b.textContent = '🔊'; b._active = false; });
+    if (btn && btn._active) { currentUtterance = null; return; }
+  }
+  const lang = LANG_CODES[currentCountry] || 'zh-CN';
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang; utter.rate = 0.85;
+  const voices = window.speechSynthesis.getVoices();
+  const match = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  if (match) utter.voice = match;
+  if (btn) { btn.classList.add('speaking'); btn._active = true; btn.textContent = '⏹'; }
+  utter.onend = utter.onerror = () => {
+    currentUtterance = null;
+    if (btn) { btn.classList.remove('speaking'); btn._active = false; btn.textContent = '🔊'; }
+  };
+  currentUtterance = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+switchCountry('cn');
+</script>
+</body>
+</html>
