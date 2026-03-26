@@ -2,7 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F5F0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="여행 회화">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>여행 회화 도우미</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -530,7 +537,22 @@ function speakPhrase(text, btn) {
 }
 
 window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-switchCountry('cn');
+
+// shortcut URL 파라미터 처리 (?country=cn/jp/us)
+const urlParams = new URLSearchParams(window.location.search);
+const paramCountry = urlParams.get('country');
+switchCountry(DATA[paramCountry] ? paramCountry : 'cn');
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // claudeusercontent.com 미리보기 환경에서는 SW 등록 건너뜀
+    if (location.hostname === 'www.claudeusercontent.com') return;
+    navigator.serviceWorker.register('sw.js')
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.log('SW error', e));
+  });
+}
 </script>
 </body>
 </html>
