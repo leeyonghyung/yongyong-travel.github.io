@@ -93,10 +93,13 @@
   }
 
   .situation-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px; margin-bottom: 20px;
   }
-  @media (min-width: 480px) { .situation-grid { grid-template-columns: repeat(6, 1fr); } }
+  @media (min-width: 480px) {
+    .situation-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  }
 
   .situation-chip {
     display: flex; flex-direction: column; align-items: center; gap: 5px;
@@ -127,7 +130,7 @@
   .phrase-card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 15px 17px;
-    padding-right: 78px; position: relative; overflow: hidden;
+    padding-right: 86px; position: relative; overflow: hidden;
     transition: all 0.18s; cursor: default;
   }
   .phrase-card::before {
@@ -147,17 +150,22 @@
   .card-actions {
     position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
     display: flex; flex-direction: column; gap: 5px; align-items: center;
-    opacity: 0; transition: opacity 0.18s;
+    opacity: 1;
   }
-  .phrase-card:hover .card-actions { opacity: 1; }
+  @media (hover: hover) {
+    .card-actions { opacity: 0; transition: opacity 0.18s; }
+    .phrase-card:hover .card-actions { opacity: 1; }
+  }
 
   .action-btn {
-    width: 30px; height: 30px; border-radius: 50%;
+    width: 36px; height: 36px; border-radius: 50%;
     border: 1px solid var(--border); background: var(--bg);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 13px; transition: all 0.15s; flex-shrink: 0;
+    cursor: pointer; font-size: 15px; transition: all 0.15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
   }
   .action-btn:hover { background: var(--card); box-shadow: var(--shadow); transform: scale(1.12); }
+  .action-btn:active { transform: scale(0.92); opacity: 0.7; }
   .action-btn.speaking { animation: pulse-ring 1s infinite; }
   @keyframes pulse-ring {
     0%   { box-shadow: 0 0 0 0 rgba(0,0,0,0.15); }
@@ -174,6 +182,41 @@
     z-index: 999; pointer-events: none; font-family: 'Noto Sans KR', sans-serif;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .gtranslate-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; margin-top: 16px; padding: 13px 16px;
+    border-radius: var(--radius-sm); border: 1.5px solid #4285F4;
+    background: #fff; color: #4285F4;
+    font-size: 14px; font-weight: 600; font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent; text-decoration: none;
+  }
+  .gtranslate-btn:hover { background: #EEF3FF; }
+  .gtranslate-btn:active { transform: scale(0.98); opacity: 0.85; }
+
+  .reply-section { margin-top: 24px; }
+  .reply-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .reply-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 3px solid #FFAA33;
+    border-radius: var(--radius-sm); padding: 12px 14px 12px 12px;
+    cursor: pointer; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent; position: relative;
+  }
+  .reply-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+  .reply-card:active { transform: scale(0.97); }
+  .reply-meaning { font-size: 11px; color: var(--muted); margin-bottom: 4px; padding-right: 28px; }
+  .reply-foreign { font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 3px; font-family: 'Noto Sans SC', sans-serif; }
+  .reply-ko { font-size: 11px; color: var(--muted); font-style: italic; }
+  .reply-speak {
+    position: absolute; right: 7px; top: 7px;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .reply-speak:active { transform: scale(0.88); }
 </style>
 </head>
 <body>
@@ -213,6 +256,7 @@ const DATA = {
       { id: 'shopping',    icon: '🛍️',  label: '쇼핑' },
       { id: 'sightseeing', icon: '📸',  label: '관광/길찾기' },
       { id: 'emergency',   icon: '🏥',  label: '긴급/병원' },
+      { id: 'shanghai',    icon: '🎡',  label: '상하이/디즈니' },
     ],
     phrases: {
       airport: [
@@ -274,6 +318,59 @@ const DATA = {
         { ko: '여기가 아파요.',                foreign: '这里很痛。',             pronun: '쩌리 헌 통.' },
         { ko: '약국이 어디예요?',              foreign: '药店在哪里？',           pronun: '야오디엔 짜이 나리?' },
         { ko: '알레르기가 있어요.',            foreign: '我有过敏。',             pronun: '워 요우 꾸어민.' },
+      ],
+      shanghai: [
+        { ko: '어른 7명, 아이 5명이요.',          foreign: '大人七位，小孩五位。',    pronun: '따런 치웨이, 샤오하이 우웨이.' },
+        { ko: '대기 시간이 얼마나 돼요?',          foreign: '需要等多长时间？',         pronun: '쉬야오 덩 뚜어창 스지엔?' },
+        { ko: '포토 스팟이 어디예요?',             foreign: '拍照点在哪里？',           pronun: '파이짜오 디엔 짜이 나리?' },
+        { ko: '이 맛집 예약 어떻게 해요?',         foreign: '这家餐厅怎么预约？',       pronun: '쩌지아 찬팅 전머 위위에?' },
+        { ko: '와이탄이 어디예요?',               foreign: '外滩在哪里？',             pronun: '와이탄 짜이 나리?' },
+        { ko: '입장권 어디서 사요?',               foreign: '在哪里买门票？',           pronun: '짜이 나리 마이 먼피아오?' },
+        { ko: '공연 시간이 언제예요?',              foreign: '表演时间是什么时候？',      pronun: '뱌오옌 스지엔 스 션머 스허우?' },
+        { ko: '가장 인기 있는 코스가 뭐예요?',      foreign: '最受欢迎的项目是什么？',    pronun: '쭈이 쇼우 환잉 더 시앙무 스 션머?' },
+      ],
+    },
+    replies: {
+      airport: [
+        { meaning: '탑승구 안내', foreign: '您的登机口是___号。', ko: '탑승구는 ___번입니다.' },
+        { meaning: '수하물 벨트', foreign: '行李转盘在___号。', ko: '수하물은 ___번 벨트.' },
+        { meaning: '따라오세요', foreign: '请您跟我来。', ko: '저를 따라오세요.' },
+        { meaning: '요금 안내', foreign: '大约___元。', ko: '약 ___위안입니다.' },
+      ],
+      hotel: [
+        { meaning: '준비 중', foreign: '房间还没准备好。', ko: '방이 아직 준비 안 됐어요.' },
+        { meaning: '체크아웃', foreign: '退房时间是十二点。', ko: '체크아웃은 12시입니다.' },
+        { meaning: '만실', foreign: '对不起，客房已满。', ko: '죄송합니다, 만실입니다.' },
+        { meaning: '추가 요금', foreign: '需要额外收费。', ko: '추가 요금이 있습니다.' },
+      ],
+      restaurant: [
+        { meaning: '만석', foreign: '对不起，座位已满。', ko: '죄송합니다, 만석입니다.' },
+        { meaning: '대기 시간', foreign: '大约等___分钟。', ko: '약 ___분 기다리세요.' },
+        { meaning: '몇 분이세요?', foreign: '请问几位？', ko: '몇 분이세요?' },
+        { meaning: '예약 확인', foreign: '您有预约吗？', ko: '예약하셨나요?' },
+      ],
+      shopping: [
+        { meaning: '재고 없음', foreign: '这个没有货了。', ko: '재고가 없습니다.' },
+        { meaning: '현금만', foreign: '只收现金。', ko: '현금만 받습니다.' },
+        { meaning: '환불 불가', foreign: '不能退款。', ko: '환불이 안 됩니다.' },
+        { meaning: '최저 가격', foreign: '价格已经是最低了。', ko: '이미 최저 가격입니다.' },
+      ],
+      sightseeing: [
+        { meaning: '마감', foreign: '今天已经结束了。', ko: '오늘은 마감됐습니다.' },
+        { meaning: '촬영 금지', foreign: '这里不能拍照。', ko: '여기는 촬영 금지입니다.' },
+        { meaning: '이쪽으로', foreign: '请往这边走。', ko: '이쪽으로 오세요.' },
+        { meaning: '길 안내', foreign: '直走，然后左转。', ko: '직진 후 좌회전하세요.' },
+      ],
+      emergency: [
+        { meaning: '위치 확인', foreign: '请告诉我您的位置。', ko: '위치를 알려주세요.' },
+        { meaning: '보험 필요', foreign: '需要出示保险证明。', ko: '보험 증명이 필요합니다.' },
+        { meaning: '대기 요청', foreign: '请在这里等候。', ko: '여기서 기다려 주세요.' },
+        { meaning: '처방전', foreign: '这是您的处方。', ko: '이것이 처방전입니다.' },
+      ],
+      shanghai: [
+        { meaning: '대기 시간', foreign: '现在等待时间约___分钟。', ko: '대기 약 ___분입니다.' },
+        { meaning: '앱 안내', foreign: '请下载迪士尼乐园APP。', ko: '디즈니랜드 앱을 받으세요.' },
+        { meaning: '사전 예약', foreign: '需要提前预约。', ko: '사전 예약이 필요합니다.' },
       ],
     },
   },
@@ -477,6 +574,11 @@ function renderMain() {
       <span id="phraseCount" class="phrase-count"></span>
     </div>
     <div class="phrase-container" id="phraseContainer"></div>
+    <a class="gtranslate-btn" href="#" onclick="openGoogleTranslate(event)">
+      <span style="font-size:18px">🌐</span>
+      Google 번역으로 대화하기
+    </a>
+    <div class="reply-section" id="replySection"></div>
   `;
   renderPhrases();
 }
@@ -504,6 +606,29 @@ function renderPhrases() {
       </div>
     </div>`;
   }).join('');
+
+  renderReplies();
+}
+
+function renderReplies() {
+  const d = DATA[currentCountry];
+  const replies = d.replies && d.replies[currentSituation];
+  const section = document.getElementById('replySection');
+  if (!section) return;
+  if (!replies || replies.length === 0) { section.innerHTML = ''; return; }
+  section.innerHTML = `
+    <div class="section-label" style="margin-top:0; padding-top:4px;">상대방이 자주 하는 말</div>
+    <div class="reply-grid">
+      ${replies.map(r => {
+        const safe = r.foreign.replace(/'/g, "\\'");
+        return `<div class="reply-card">
+          <button class="reply-speak" onclick="speakPhrase('${safe}',this)">🔊</button>
+          <div class="reply-meaning">${r.meaning}</div>
+          <div class="reply-foreign">${r.foreign}</div>
+          <div class="reply-ko">${r.ko}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 function copyPhrase(text) {
@@ -537,6 +662,13 @@ function speakPhrase(text, btn) {
 }
 
 window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+function openGoogleTranslate(e) {
+  e.preventDefault();
+  const langMap = { cn: 'zh-CN', jp: 'ja', us: 'en' };
+  const tl = langMap[currentCountry] || 'zh-CN';
+  window.open(`https://translate.google.com/?sl=${tl}&tl=ko&op=translate`, '_blank');
+}
 
 // shortcut URL 파라미터 처리 (?country=cn/jp/us)
 const urlParams = new URLSearchParams(window.location.search);
