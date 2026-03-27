@@ -1,7 +1,7 @@
 {
-  "name": "여행 회화 도우미",
-  "short_name": "여행 회화",
-  "description": "중국·일본·미국 여행 필수 회화 모음",
+  "name": "Welcome to 용용 Travel",
+  "short_name": "용용 Travel",
+  "description": "중국·일본·미국 여행 필수 회화 — Welcome to 용용 Travel",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
