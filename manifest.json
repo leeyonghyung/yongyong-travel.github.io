@@ -5,10 +5,16 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F7F5F0",
+  "background_color": "#1048b0",
   "theme_color": "#F7F5F0",
   "lang": "ko",
   "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
@@ -22,7 +28,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["travel", "education"],
+  "categories": [
+    "travel",
+    "education"
+  ],
   "shortcuts": [
     {
       "name": "중국어 회화",
